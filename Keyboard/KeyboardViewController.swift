@@ -16,7 +16,8 @@ class KeyboardViewController: UIInputViewController {
             showGlobe: needsInputModeSwitchKey,
             onGlobe: { [weak self] in self?.advanceToNextInputMode() },
             onCheck: { [weak self] in self?.check() },
-            onReplace: { [weak self] text in self?.replace(with: text) }
+            onReplace: { [weak self] text in self?.replace(with: text) },
+            onUndo: { [weak self] previous in self?.undo(to: previous) }
         )
 
         // Put the SwiftUI view inside this UIKit controller.
@@ -69,9 +70,22 @@ class KeyboardViewController: UIInputViewController {
         }
     }
 
+    // Replace: remember exactly what was there (for Undo), then swap in the new text.
+    private func replace(with newText: String) {
+        let previous = currentText()
+        swapText(to: newText)
+        model.state = .replaced(previous: previous)
+    }
+
+    // Undo: put the user's original message back.
+    private func undo(to previous: String) {
+        swapText(to: previous)
+        model.state = .idle
+    }
+
     // Moves the cursor to the end, deletes the whole message one character
     // at a time (the only way a keyboard can delete), then types the new one.
-    private func replace(with corrected: String) {
+    private func swapText(to newText: String) {
         let proxy = textDocumentProxy
         let before = proxy.documentContextBeforeInput ?? ""
         let after = proxy.documentContextAfterInput ?? ""
@@ -80,8 +94,6 @@ class KeyboardViewController: UIInputViewController {
 
         proxy.adjustTextPosition(byCharacterOffset: after.count)
         for _ in 0..<total { proxy.deleteBackward() }
-        proxy.insertText(corrected)
-
-        model.state = .idle
+        proxy.insertText(newText)
     }
 }

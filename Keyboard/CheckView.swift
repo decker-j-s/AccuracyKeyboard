@@ -1,5 +1,6 @@
 import SwiftUI
-import Combine   // provides ObservableObject and @Published
+import Combine       // provides ObservableObject and @Published
+import AVFoundation  // the iPhone's built-in text-to-speech
 
 // Everything the keyboard shows. SwiftUI redraws the view automatically
 // whenever one of the @Published values in KeyboardModel changes.
@@ -11,11 +12,24 @@ final class KeyboardModel: ObservableObject {
         case checking
         case natural
         case suggestion(CheckResult)
+        case replaced(previous: String)   // after Replace; `previous` is what Undo restores
         case failed(String)
     }
 
     @Published var state: State = .idle
     var original = ""   // the message as it was when the user tapped Check
+
+    // Kept here (not inside `speak`) so it isn't thrown away mid-sentence.
+    private let speaker = AVSpeechSynthesizer()
+
+    // Reads Chinese text aloud with a Mandarin voice. Works offline.
+    func speak(_ text: String) {
+        speaker.stopSpeaking(at: .immediate)
+        let utterance = AVSpeechUtterance(string: text)
+        utterance.voice = AVSpeechSynthesisVoice(language: "zh-CN")
+        utterance.rate = AVSpeechUtteranceDefaultSpeechRate * 0.9   // a touch slower for learning
+        speaker.speak(utterance)
+    }
 }
 
 struct CheckView: View {
@@ -23,7 +37,8 @@ struct CheckView: View {
     let showGlobe: Bool
     let onGlobe: () -> Void
     let onCheck: () -> Void
-    let onReplace: (String) -> Void
+    let onReplace: (String) -> Void   // swap in corrected (or native) text
+    let onUndo: (String) -> Void      // put back what the user had typed
 
     // Card color: white in light mode, dark gray in dark mode.
     private let cardColor = Color(uiColor: .secondarySystemGroupedBackground)
@@ -61,6 +76,7 @@ struct CheckView: View {
         case .checking: return "checking"
         case .natural: return "natural"
         case .suggestion(let r): return "suggestion-\(r.corrected)"
+        case .replaced: return "replaced"
         case .failed(let m): return "failed-\(m)"
         }
     }
@@ -106,6 +122,19 @@ struct CheckView: View {
                 Text("Sounds natural. Send it.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
+                speakButton(model.original)
+            }
+
+        case .replaced:
+            centeredCard {
+                Image(systemName: "checkmark.circle")
+                    .font(.system(size: 28))
+                    .foregroundStyle(.green)
+                Text("已替换")
+                    .font(.title3.weight(.semibold))
+                Text("Tap Undo to bring back what you wrote.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
 
         case .failed(let message):
@@ -143,6 +172,7 @@ struct CheckView: View {
                     Text(result.changes.count == 1 ? "1 change" : "\(result.changes.count) changes")
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
+                    speakButton(result.corrected)
                 }
                 trackedChanges(diffSegments(original: model.original, corrected: result.corrected))
                     .font(.title2)
@@ -156,12 +186,29 @@ struct CheckView: View {
                 changeRow(change)
             }
 
+            // How a native speaker might say it, with buttons to hear it or send it instead.
             if !result.nativeVersion.isEmpty && result.nativeVersion != result.corrected {
-                Label("Native: \(result.nativeVersion)", systemImage: "person.wave.2")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                HStack(spacing: 10) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Label("Native speaker", systemImage: "person.wave.2")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text(result.nativeVersion)
+                            .font(.body)
+                    }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 4)
+                    speakButton(result.nativeVersion)
+                    Button("Use this") { onReplace(result.nativeVersion) }
+                        .font(.footnote.weight(.semibold))
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(.green.opacity(0.15), in: Capsule())
+                        .foregroundStyle(.green)
+                        .buttonStyle(.plain)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .background(cardColor, in: RoundedRectangle(cornerRadius: 14))
             }
         }
     }
@@ -227,11 +274,33 @@ struct CheckView: View {
                 .buttonStyle(KeyStyle(fill: .green, text: .white))
                 .transition(.move(edge: .trailing).combined(with: .opacity))
             }
+
+            if case .replaced(let previous) = model.state {
+                Button { onUndo(previous) } label: {
+                    Label("Undo", systemImage: "arrow.uturn.backward")
+                        .frame(maxWidth: .infinity, minHeight: 42)
+                }
+                .buttonStyle(KeyStyle(fill: cardColor))
+                .transition(.move(edge: .trailing).combined(with: .opacity))
+            }
         }
         .font(.body.weight(.medium))
     }
 
     // MARK: - Helpers
+
+    // Small round 🔊 button that reads `text` aloud.
+    private func speakButton(_ text: String) -> some View {
+        Button { model.speak(text) } label: {
+            Image(systemName: "speaker.wave.2.fill")
+                .font(.footnote)
+                .frame(width: 30, height: 30)
+                .background(.secondary.opacity(0.15), in: Circle())
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(.secondary)
+        .accessibilityLabel("Play pronunciation")
+    }
 
     // A rounded card with its contents stacked and centered.
     private func centeredCard<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
