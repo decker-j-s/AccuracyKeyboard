@@ -1,0 +1,12 @@
+# API key: never commit
+Keyboard/Secrets.swift
+
+# Xcode
+xcuserdata/
+DerivedData/
+*.xcuserstate
+.DS_Store
+
+# check.py output
+results.html
+__pycache__/

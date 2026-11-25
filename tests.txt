@@ -1,0 +1,27 @@
+# Test messages: one per line, `message | natural` or `message | fix`.
+# These are starters. Check the labels with your own judgment, then add
+# 20+ real messages you've actually sent. Include lots of natural ones:
+# the biggest risk is the checker "fixing" things that were already fine.
+
+# Should be left alone
+你吃饭了吗 | natural
+我到了，在门口等你 | natural
+明天几点见？ | natural
+哈哈哈好的 | natural
+我今天有点累，先睡了 | natural
+不好意思，我刚看到消息 | natural
+我在路上了，大概十分钟到 | natural
+你周末有空吗？想约你去吃火锅 | natural
+我学中文两年了 | natural
+我去过北京两次 | natural
+我等下call你 | natural
+
+# Should be corrected
+我昨天不去学校 | fix
+他是很高 | fix
+我们见面明天吧 | fix
+我很累了昨天 | fix
+你有没有吃饭了 | fix
+谢谢你很多 | fix
+我很兴奋见你 | fix
+我想要去中国在明年 | fix
