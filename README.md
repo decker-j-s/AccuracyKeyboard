@@ -4,7 +4,23 @@
 
 I'm learning Mandarin (3rd-year university Chinese plus a summer in Beijing). My texts were usually understandable but often 不太自然 ("not quite natural"), and nobody corrects you mid-conversation. So I built a tool that does: type a message, tap **Check**, and see exactly what a native speaker would change, as tracked changes with pinyin and a short reason, while keeping as many of my own words as possible.
 
-<!-- Screenshots: iPhone result view, ✓ natural view, Mac window -->
+<table>
+  <tr>
+    <td align="center"><img src="docs/screenshots/iphone-fix.png" width="240" alt="Keyboard correcting 不 to 没 with pinyin and a reason"></td>
+    <td align="center"><img src="docs/screenshots/iphone-native.png" width="240" alt="Keyboard correcting 兴奋 to 期待, with a native-speaker version"></td>
+    <td align="center"><img src="docs/screenshots/iphone-natural.png" width="240" alt="Keyboard showing 很自然 for a message that's already natural"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub><b>A mistake</b>: 不 → 没, with pinyin and why</sub></td>
+    <td align="center"><sub><b>A word choice</b>: 兴奋 → 期待, plus how a native speaker would say it</sub></td>
+    <td align="center"><sub><b>Already natural</b>: it stays quiet</sub></td>
+  </tr>
+</table>
+
+<p align="center">
+  <img src="docs/screenshots/mac-window.png" width="520" alt="Mac Accuracy Checker window fixing word order: 明年 moves before 去中国"><br>
+  <sub><b>Mac</b>: press ⌃⌥C in any app. Here it fixes word order (time words go before the verb).</sub>
+</p>
 
 ## What it does
 
