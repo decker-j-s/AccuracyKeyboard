@@ -87,7 +87,16 @@ You need a Mac with Xcode, an iPhone, and a [Claude API key](https://console.ant
 2. **iPhone:** open `AccuracyKeyboard.xcodeproj`, select your team and device, press ▶. Then Settings › General › Keyboard › Keyboards › Add **AccuracyKeyboard** and turn on **Allow Full Access** (needed to reach the API).
 3. **Mac:** `./Mac/build.sh`, then allow **Accuracy Checker** in System Settings › Privacy & Security › Accessibility.
 
-The API key is compiled into the app, which is fine for personal use only. Shipping this to other people would need a small backend to hold the key.
+The API key is compiled into the app, which is fine for personal use only.
+
+## What it would take to ship it to other learners
+
+I built this for myself, but most language learners have the same gap: texts that are understandable but not natural, and nobody correcting them mid-conversation. To make it something others could install:
+
+- **Move the API key to a small backend**, so the app calls my server and users never handle a key
+- **Release on the App Store**: paid developer account, App Review, and a privacy policy (messages are only sent when the user taps Check)
+- **Support other languages**: the prompt is the only Mandarin-specific part; the diff, UI and API client are language-agnostic
+- **Cost is low**: about $0.0002–0.0006 per check with Claude Haiku, so even 30 checks a day is well under $1 per user per month
 
 ## Roadmap
 
