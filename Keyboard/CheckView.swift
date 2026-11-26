@@ -214,7 +214,12 @@ struct CheckView: View {
     }
 
     private func changeRow(_ change: CheckResult.Change) -> some View {
-        HStack(alignment: .center, spacing: 10) {
+        // Short changes (不 → 没): reason beside them. Long phrases:
+        // reason underneath, so it doesn't get squeezed into a thin column.
+        let isShort = change.from.count + change.to.count <= 6
+        let layout = isShort ? AnyLayout(HStackLayout(alignment: .center, spacing: 10))
+                             : AnyLayout(VStackLayout(alignment: .leading, spacing: 6))
+        return layout {
             HStack(spacing: 6) {
                 charsWithPinyin(change.from, color: .red)
                 Image(systemName: "arrow.right")

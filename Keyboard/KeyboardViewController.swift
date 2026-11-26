@@ -1,11 +1,14 @@
 import UIKit
 import SwiftUI
+import Combine
 
 // iOS creates this class when the user switches to the keyboard.
 // It owns `textDocumentProxy`, the keyboard's only connection to the
 // text field in the other app (iMessage, WeChat, …).
 class KeyboardViewController: UIInputViewController {
     private let model = KeyboardModel()
+    private var heightConstraint: NSLayoutConstraint?
+    private var stateWatcher: AnyCancellable?   // keeps the height in sync with the state
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -26,14 +29,34 @@ class KeyboardViewController: UIInputViewController {
         addChild(host)
         view.addSubview(host.view)
         host.view.translatesAutoresizingMaskIntoConstraints = false
+        let height = view.heightAnchor.constraint(equalToConstant: 280)
+        heightConstraint = height
         NSLayoutConstraint.activate([
             host.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             host.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             host.view.topAnchor.constraint(equalTo: view.topAnchor),
             host.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            view.heightAnchor.constraint(equalToConstant: 280),
+            height,
         ])
         host.didMove(toParent: self)
+
+        // Whenever the result changes, resize the keyboard to fit it.
+        stateWatcher = model.$state.sink { [weak self] state in
+            self?.heightConstraint?.constant = Self.height(for: state)
+        }
+    }
+
+    // How tall the keyboard should be for what it's showing.
+    // Compact for simple screens; taller for corrections, so the
+    // change cards and the "Native speaker" card fit without scrolling.
+    private static func height(for state: KeyboardModel.State) -> CGFloat {
+        guard case .suggestion(let result) = state else { return 280 }
+        var height: CGFloat = 250                          // badge + sentence card + buttons
+        height += CGFloat(result.changes.count) * 70       // one card per change
+        if !result.nativeVersion.isEmpty && result.nativeVersion != result.corrected {
+            height += 70                                   // native speaker card
+        }
+        return min(height, 460)   // past this it would cover the whole chat; scroll instead
     }
 
     // The whole message = text before the cursor + text after it.

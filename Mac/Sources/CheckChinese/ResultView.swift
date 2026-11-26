@@ -7,7 +7,9 @@ struct ResultView: View {
     let onCopy: (String) -> Void
     let onClose: () -> Void
 
-    private let cardColor = Color(nsColor: .controlBackgroundColor)
+    // A light tint of the text color: a lighter gray in dark mode, a slightly
+    // darker gray in light mode, so cards always stand out from the window.
+    private let cardColor = Color.primary.opacity(0.07)
 
     var body: some View {
         VStack(spacing: 10) {
@@ -96,7 +98,12 @@ struct ResultView: View {
             .background(cardColor, in: RoundedRectangle(cornerRadius: 12))
 
             ForEach(result.changes, id: \.self) { change in
-                HStack(spacing: 10) {
+                // Short changes (不 → 没): reason beside them. Long phrases:
+                // reason underneath, so it doesn't get squeezed into a thin column.
+                let isShort = change.from.count + change.to.count <= 6
+                let layout = isShort ? AnyLayout(HStackLayout(spacing: 10))
+                                     : AnyLayout(VStackLayout(alignment: .leading, spacing: 6))
+                layout {
                     HStack(spacing: 6) {
                         charsWithPinyin(change.from, color: .red)
                         Image(systemName: "arrow.right").font(.caption).foregroundStyle(.tertiary)

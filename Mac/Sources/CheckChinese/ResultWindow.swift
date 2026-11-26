@@ -30,6 +30,8 @@ final class CheckModel: ObservableObject {
 final class ResultWindow {
     private let model = CheckModel()
     private var panel: NSPanel?
+    private var hostingView: NSHostingView<ResultView>?
+    private var stateWatcher: AnyCancellable?        // resizes the window when the result changes
     private var previousApp: NSRunningApplication?   // the chat app to paste back into
 
     // Shortcut flow: select the message you're typing (⌘A), copy it (⌘C),
@@ -101,13 +103,34 @@ final class ResultWindow {
             p.level = .floating                 // stays above your chat app
             // Show up on whatever desktop Space you're on, even over full-screen apps.
             p.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-            p.contentView = NSHostingView(rootView: view)
+            let host = NSHostingView(rootView: view)
+            p.contentView = host
             p.isReleasedWhenClosed = false
             panel = p
+            hostingView = host
+
+            // Whenever the result changes, resize the window to fit it.
+            stateWatcher = model.$state.sink { [weak self] _ in self?.fitToContent() }
         }
+        fitToContent()
         panel?.center()
         NSApp.activate()
         panel?.makeKeyAndOrderFront(nil)
+    }
+
+    // Sizes the window to its content, keeping the top edge where it is.
+    // Done a moment later (async), not mid-update: resizing while macOS is
+    // still laying out the window is what caused the crash.
+    private func fitToContent() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self, let panel = self.panel, let host = self.hostingView else { return }
+            let size = host.fittingSize
+            guard size.height > 0 else { return }
+            var frame = panel.frameRect(forContentRect: NSRect(origin: .zero, size: size))
+            frame.origin.x = panel.frame.minX
+            frame.origin.y = panel.frame.maxY - frame.height   // keep the top edge fixed
+            panel.setFrame(frame, display: true, animate: false)
+        }
     }
 
     // Replace: go back to your chat app (your message is still selected),
