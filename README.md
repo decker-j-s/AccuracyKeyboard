@@ -93,7 +93,6 @@ The API key is compiled into the app, which is fine for personal use only. Shipp
 
 - Type pinyin directly in the keyboard so checks can happen without switching keyboards
 - A journal of my most common mistakes
-- Hebrew support
 
 ---
 
