@@ -169,7 +169,7 @@ struct CheckView: View {
                         .padding(.vertical, 4)
                         .background(color.opacity(0.15), in: Capsule())
                     Spacer()
-                    Text(result.changes.count == 1 ? "1 change" : "\(result.changes.count) changes")
+                    Text(result.displayChanges.count == 1 ? "1 change" : "\(result.displayChanges.count) changes")
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
                     speakButton(result.corrected)
@@ -182,7 +182,7 @@ struct CheckView: View {
             .background(cardColor, in: RoundedRectangle(cornerRadius: 14))
 
             // One small card per change: 不 bù → 没 méi + the reason
-            ForEach(result.changes, id: \.self) { change in
+            ForEach(result.displayChanges, id: \.self) { change in
                 changeRow(change)
             }
 

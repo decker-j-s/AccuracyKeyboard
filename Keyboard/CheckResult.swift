@@ -28,4 +28,19 @@ struct CheckResult: Codable, Equatable {
     func isNatural(original: String) -> Bool {
         verdict == "natural" || corrected == original
     }
+
+    // The changes to show on screen, cleaned up in case the model slips:
+    // skips empty entries, and fills in a blank reason so the card never
+    // has a mysterious gap. (The red/green line comes from the diff, so
+    // it's always complete even if this list isn't.)
+    var displayChanges: [Change] {
+        changes
+            .filter { !($0.from.isEmpty && $0.to.isEmpty) }
+            .map { change in
+                let reason = change.reason.trimmingCharacters(in: .whitespacesAndNewlines)
+                return reason.isEmpty
+                    ? Change(from: change.from, to: change.to, reason: "No explanation given for this change.")
+                    : change
+            }
+    }
 }

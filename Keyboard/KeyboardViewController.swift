@@ -51,8 +51,8 @@ class KeyboardViewController: UIInputViewController {
     // change cards and the "Native speaker" card fit without scrolling.
     private static func height(for state: KeyboardModel.State) -> CGFloat {
         guard case .suggestion(let result) = state else { return 280 }
-        var height: CGFloat = 250                          // badge + sentence card + buttons
-        height += CGFloat(result.changes.count) * 70       // one card per change
+        var height: CGFloat = 215                          // badge + sentence card + buttons
+        height += CGFloat(result.displayChanges.count) * 70       // one card per change
         if !result.nativeVersion.isEmpty && result.nativeVersion != result.corrected {
             height += 70                                   // native speaker card
         }

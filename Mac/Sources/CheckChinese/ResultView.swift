@@ -97,7 +97,7 @@ struct ResultView: View {
             .padding(14)
             .background(cardColor, in: RoundedRectangle(cornerRadius: 12))
 
-            ForEach(result.changes, id: \.self) { change in
+            ForEach(result.displayChanges, id: \.self) { change in
                 // Short changes (不 → 没): reason beside them. Long phrases:
                 // reason underneath, so it doesn't get squeezed into a thin column.
                 let isShort = change.from.count + change.to.count <= 6
