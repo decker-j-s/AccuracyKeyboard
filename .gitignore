@@ -10,3 +10,7 @@ DerivedData/
 # check.py output
 results.html
 __pycache__/
+
+# Mac version build output
+Mac/.build/
+Mac/build/

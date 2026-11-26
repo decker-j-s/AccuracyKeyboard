@@ -1,0 +1,1 @@
+../../../../Keyboard/CheckResult.swift
