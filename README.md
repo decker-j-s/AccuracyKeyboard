@@ -18,7 +18,7 @@ I'm learning Mandarin (3rd-year university Chinese plus a summer in Beijing). My
 </table>
 
 <p align="center">
-  <img src="docs/screenshots/mac-window.png" width="520" alt="Mac Accuracy Checker window fixing word order: 明年 moves before 去中国"><br>
+  <img src="docs/screenshots/mac-window.png" width="760" alt="Mac Accuracy Checker window over a Messages chat, fixing word order: 明年 moves before 去中国"><br>
   <sub><b>Mac</b>: press ⌃⌥C in any app. Here it fixes word order (time words go before the verb).</sub>
 </p>
 
