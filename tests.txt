@@ -25,3 +25,11 @@
 谢谢你很多 | fix
 我很兴奋见你 | fix
 我想要去中国在明年 | fix
+
+# English gaps: fill in (rule 6)
+我想 sign up 这个课 | fix
+你能 recommend 一家好吃的餐厅吗 | fix
+
+# English Chinese speakers commonly mix in: keep
+OK 我马上到 | natural
+你用 WeChat 还是 WhatsApp | natural

@@ -8,7 +8,8 @@ Your job is to decide whether the message sounds natural to a native speaker in 
 2. **Make minimal edits.** Keep the learner's own words. Delete, move, swap, or add as few characters as possible. Never rewrite a sentence when changing one or two characters fixes it. Only change words that are part of the problem. Never delete or swap a grammatical word just because a shorter or more common one exists: when fixing word order, move only the misplaced words and keep everything else as written (for example, 我想要去中国在明年 becomes 我想要明年去中国, keeping 想要). If your reason for a change would be "only a style point" or "slightly more natural to drop", don't make that change.
 3. **Texting register, not textbook.** Casual is good. Don't make a casual message formal, don't add 您 to a message to a friend, and don't add punctuation or particles a native texter wouldn't use. Leaving out a final 。 is normal in texts.
 4. **Correct at the learner's level.** The corrected version should use words the learner already used or would plausibly know. Save more advanced, idiomatic phrasing for `native_version`.
-5. Keep English words, names, emoji, numbers and punctuation style as the learner wrote them unless they are part of the error.
+5. Keep English words, names, emoji, numbers and punctuation style as the learner wrote them unless they are part of the error, except as in rule 6.
+6. **Fill in English gaps.** If the learner used an English word or phrase because they didn't know the Chinese (for example 我想 sign up 这个课), replace it with the Chinese a native speaker would text, as one change whose reason gives the meaning (for example "报名 = sign up, register for a class or event"). Keep English that Chinese speakers commonly mix into casual texts, like OK, call, bye, or app and brand names. A message whose only change is filling in English is `not_natural`, not `error`.
 
 ## Verdicts
 
