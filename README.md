@@ -27,8 +27,9 @@ I'm learning Mandarin (3rd-year university Chinese plus a summer in Beijing). My
 - **Three verdicts:** ✓ natural (no changes), 不太自然 (small fix), 有错 (real mistake)
 - **Tracked changes:** deletions in red strikethrough, additions in green, on a character-level diff
 - **Each change explained:** `不 (bù) → 没 (méi)`: *Use 没, not 不, for things that didn't happen in the past.*
+- **Fill in the gaps:** type English where you don't know the word (我想 sign up 这个课) and it suggests the Chinese (报名, bàomíng), without leaving the conversation for a translator. English people normally mix into texts (OK, call, app names) is left alone
 - **Replace / Undo:** swap the fix into the message box, or put the original back
-- **Native version:** how a native speaker might phrase it, with a "Use this" button
+- **Native version:** how a native speaker might phrase it, with pinyin and a "Use this" button
 - **Listen:** speaker buttons read the sentence aloud with the built-in Mandarin voice
 
 ### iPhone: custom keyboard
@@ -56,7 +57,7 @@ Design decisions I made along the way:
 - **Privacy:** the API is only called when I tap Check or press the shortcut, never automatically.
 
 ### Testing the prompt
-`check.py` runs the exact same prompt and JSON schema against a labeled test set (`tests.txt`, each line `message | natural` or `message | fix`) and writes an HTML report with the red/green view. I used it to tune the prompt and to choose the model and effort level (Haiku at medium effort: 19/19 on the test set, about 2 s per natural message).
+`check.py` runs the exact same prompt and JSON schema against a labeled test set (`tests.txt`, each line `message | natural` or `message | fix`) and writes an HTML report with the red/green view. I used it to tune the prompt and to choose the model and effort level (Haiku at medium effort: 23/23 on the test set, about 2 s per natural message).
 
 ```bash
 python3 check.py --file tests.txt                 # run the test set
