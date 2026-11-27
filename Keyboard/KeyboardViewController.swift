@@ -54,7 +54,7 @@ class KeyboardViewController: UIInputViewController {
         var height: CGFloat = 215                          // badge + sentence card + buttons
         height += CGFloat(result.displayChanges.count) * 70       // one card per change
         if !result.nativeVersion.isEmpty && result.nativeVersion != result.corrected {
-            height += 70                                   // native speaker card
+            height += 86                                   // native speaker card (sentence + pinyin)
         }
         return min(height, 460)   // past this it would cover the whole chat; scroll instead
     }

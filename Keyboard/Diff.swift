@@ -56,6 +56,12 @@ func diffSegments(original: String, corrected: String) -> [DiffSegment] {
 // Pinyin with tone marks, worked out on the phone (no API call).
 // Apple's converter picks the most common reading, so a few characters
 // with several readings (了, 得, 还, 行…) can occasionally be wrong.
+// True if the text has at least one Chinese character. Used to skip the
+// pinyin line under English (e.g. "sign up"), where it would just repeat it.
+func containsChinese(_ text: String) -> Bool {
+    text.unicodeScalars.contains { $0.properties.isIdeographic }
+}
+
 func pinyin(_ text: String) -> String {
     let mutable = NSMutableString(string: text)
     CFStringTransform(mutable, nil, kCFStringTransformMandarinLatin, false)

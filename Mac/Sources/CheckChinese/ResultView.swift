@@ -127,6 +127,9 @@ struct ResultView: View {
                         Label("Native speaker", systemImage: "person.wave.2")
                             .font(.caption).foregroundStyle(.secondary)
                         Text(result.nativeVersion).textSelection(.enabled)
+                        Text(pinyin(result.nativeVersion))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     speakButton(result.nativeVersion)
@@ -181,7 +184,7 @@ struct ResultView: View {
             Text(text.isEmpty ? "—" : text)
                 .font(.title3.weight(.medium))
                 .foregroundStyle(color)
-            if !text.isEmpty {
+            if containsChinese(text) {   // no pinyin under English like "sign up"
                 Text(pinyin(text)).font(.caption2).foregroundStyle(.secondary)
             }
         }

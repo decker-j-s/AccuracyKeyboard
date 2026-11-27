@@ -195,6 +195,9 @@ struct CheckView: View {
                             .foregroundStyle(.secondary)
                         Text(result.nativeVersion)
                             .font(.body)
+                        Text(pinyin(result.nativeVersion))
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     speakButton(result.nativeVersion)
@@ -244,7 +247,7 @@ struct CheckView: View {
             Text(text.isEmpty ? "—" : text)
                 .font(.title3.weight(.medium))
                 .foregroundStyle(color)
-            if !text.isEmpty {
+            if containsChinese(text) {   // no pinyin under English like "sign up"
                 Text(pinyin(text))
                     .font(.caption2)
                     .foregroundStyle(.secondary)
