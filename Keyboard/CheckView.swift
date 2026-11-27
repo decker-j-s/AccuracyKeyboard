@@ -175,7 +175,7 @@ struct CheckView: View {
                     speakButton(result.corrected)
                 }
                 trackedChanges(diffSegments(original: model.original, corrected: result.corrected))
-                    .font(.title2)
+                    .font(sentenceFont(for: result))
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(14)
@@ -188,69 +188,128 @@ struct CheckView: View {
 
             // How a native speaker might say it, with buttons to hear it or send it instead.
             if !result.nativeVersion.isEmpty && result.nativeVersion != result.corrected {
-                HStack(spacing: 10) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Label("Native speaker", systemImage: "person.wave.2")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        Text(result.nativeVersion)
-                            .font(.body)
-                        Text(pinyin(result.nativeVersion))
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    speakButton(result.nativeVersion)
-                    Button("Use this") { onReplace(result.nativeVersion) }
-                        .font(.footnote.weight(.semibold))
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(.green.opacity(0.15), in: Capsule())
-                        .foregroundStyle(.green)
-                        .buttonStyle(.plain)
-                }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 10)
-                .background(cardColor, in: RoundedRectangle(cornerRadius: 14))
+                nativeCard(result.nativeVersion)
             }
         }
     }
 
-    private func changeRow(_ change: CheckResult.Change) -> some View {
-        // Short changes (不 → 没): reason beside them. Long phrases:
-        // reason underneath, so it doesn't get squeezed into a thin column.
-        let isShort = change.from.count + change.to.count <= 6
-        let layout = isShort ? AnyLayout(HStackLayout(alignment: .center, spacing: 10))
-                             : AnyLayout(VStackLayout(alignment: .leading, spacing: 6))
-        return layout {
-            HStack(spacing: 6) {
-                charsWithPinyin(change.from, color: .red)
-                Image(systemName: "arrow.right")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
-                charsWithPinyin(change.to, color: .green)
-            }
-            .fixedSize()
-            Text(change.reason)
-                .font(.footnote)
+    // How a native speaker might say it, with buttons to hear it or send it instead.
+    // Short sentence: buttons beside it. Long sentence: the text gets the full
+    // width and the buttons go underneath, so it doesn't turn into a thin column.
+    @ViewBuilder
+    private func nativeCard(_ native: String) -> some View {
+        let isLong = native.count > 15
+        let text = VStack(alignment: .leading, spacing: 2) {
+            Label("Native speaker", systemImage: "person.wave.2")
+                .font(.caption)
                 .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            Text(native)
+                .font(isLong ? .callout : .body)
+                .fixedSize(horizontal: false, vertical: true)
+            Text(pinyin(native))
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+
+        let buttons = HStack(spacing: 10) {
+            speakButton(native)
+            Button("Use this") { onReplace(native) }
+                .font(.footnote.weight(.semibold))
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(.green.opacity(0.15), in: Capsule())
+                .foregroundStyle(.green)
+                .buttonStyle(.plain)
+        }
+
+        Group {
+            if isLong {
+                VStack(alignment: .leading, spacing: 8) { text; buttons }
+            } else {
+                HStack(spacing: 10) { text; buttons }
+            }
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
         .background(cardColor, in: RoundedRectangle(cornerRadius: 14))
     }
 
-    // Characters on top, pinyin underneath. "—" if nothing was there.
-    private func charsWithPinyin(_ text: String, color: Color) -> some View {
-        VStack(spacing: 1) {
+    // The main sentence gets smaller as the message gets longer, so a long
+    // correction stays readable instead of becoming a wall of big text.
+    private func sentenceFont(for result: CheckResult) -> Font {
+        let length = max(model.original.count, result.corrected.count)
+        if length <= 20 { return .title2 }
+        if length <= 45 { return .title3 }
+        return .body
+    }
+
+    // One card per change, laid out by size (see Change.size in CheckResult.swift).
+    @ViewBuilder
+    private func changeRow(_ change: CheckResult.Change) -> some View {
+        let reason = Text(change.reason)
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .fixedSize(horizontal: false, vertical: true)
+
+        Group {
+            switch change.size {
+            case .tiny:      // 不 → 没   reason beside it
+                HStack(spacing: 10) {
+                    sideBySide(change)
+                    reason
+                }
+            case .medium:    // 去中国在明年 → 明年去中国, reason below
+                VStack(alignment: .leading, spacing: 6) {
+                    sideBySide(change)
+                    reason
+                }
+            case .long:      // long English phrase: stacked so everything wraps
+                VStack(alignment: .leading, spacing: 4) {
+                    charsWithPinyin(change.from, color: .red, size: .long)
+                    Image(systemName: "arrow.down")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                    charsWithPinyin(change.to, color: .green, size: .long)
+                    reason.padding(.top, 2)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(cardColor, in: RoundedRectangle(cornerRadius: 14))
+    }
+
+    // Old → new on one line (only used when both are short).
+    private func sideBySide(_ change: CheckResult.Change) -> some View {
+        HStack(spacing: 6) {
+            charsWithPinyin(change.from, color: .red)
+            Image(systemName: "arrow.right")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+            charsWithPinyin(change.to, color: .green)
+        }
+        .fixedSize()
+    }
+
+    // Characters with pinyin underneath. "—" if nothing was there.
+    // Long text uses a smaller font, left-aligned, and is allowed to wrap.
+    private func charsWithPinyin(_ text: String, color: Color,
+                                 size: CheckResult.Change.Size = .tiny) -> some View {
+        let isLong = size == .long
+        return VStack(alignment: isLong ? .leading : .center, spacing: 1) {
             Text(text.isEmpty ? "—" : text)
-                .font(.title3.weight(.medium))
+                .font(isLong ? .body.weight(.medium) : .title3.weight(.medium))
                 .foregroundStyle(color)
+                .fixedSize(horizontal: false, vertical: true)
             if containsChinese(text) {   // no pinyin under English like "sign up"
                 Text(pinyin(text))
                     .font(.caption2)
                     .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
     }

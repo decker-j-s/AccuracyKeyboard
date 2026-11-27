@@ -15,6 +15,19 @@ struct CheckResult: Codable, Equatable {
         let from: String
         let to: String
         let reason: String
+
+        // How much room this change needs on screen. Shared so the iPhone
+        // and Mac lay out change cards the same way.
+        //   tiny:   不 → 没                 (reason beside it)
+        //   medium: 去中国在明年 → 明年去中国  (side by side, reason below)
+        //   long:   "sign up for the class…" → 报名…  (stacked, text wraps)
+        enum Size { case tiny, medium, long }
+
+        var size: Size {
+            if from.count + to.count <= 6 { return .tiny }
+            if from.count <= 8 && to.count <= 8 { return .medium }
+            return .long
+        }
     }
 
     enum CodingKeys: String, CodingKey {

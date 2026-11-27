@@ -90,7 +90,7 @@ struct ResultView: View {
                     speakButton(result.corrected)
                 }
                 trackedChanges(diffSegments(original: model.original, corrected: result.corrected))
-                    .font(.title2)
+                    .font(sentenceFont(for: result))
                     .textSelection(.enabled)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -98,50 +98,50 @@ struct ResultView: View {
             .background(cardColor, in: RoundedRectangle(cornerRadius: 12))
 
             ForEach(result.displayChanges, id: \.self) { change in
-                // Short changes (不 → 没): reason beside them. Long phrases:
-                // reason underneath, so it doesn't get squeezed into a thin column.
-                let isShort = change.from.count + change.to.count <= 6
-                let layout = isShort ? AnyLayout(HStackLayout(spacing: 10))
-                                     : AnyLayout(VStackLayout(alignment: .leading, spacing: 6))
-                layout {
-                    HStack(spacing: 6) {
-                        charsWithPinyin(change.from, color: .red)
-                        Image(systemName: "arrow.right").font(.caption).foregroundStyle(.tertiary)
-                        charsWithPinyin(change.to, color: .green)
-                    }
-                    .fixedSize()
-                    Text(change.reason)
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 10)
-                .background(cardColor, in: RoundedRectangle(cornerRadius: 12))
+                changeRow(change)
             }
 
             if !result.nativeVersion.isEmpty && result.nativeVersion != result.corrected {
-                HStack(spacing: 10) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Label("Native speaker", systemImage: "person.wave.2")
-                            .font(.caption).foregroundStyle(.secondary)
-                        Text(result.nativeVersion).textSelection(.enabled)
-                        Text(pinyin(result.nativeVersion))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    speakButton(result.nativeVersion)
-                    Button("Use this") { onCopy(result.nativeVersion) }
-                        .buttonStyle(.bordered)
-                        .tint(.green)
-                }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 10)
-                .background(cardColor, in: RoundedRectangle(cornerRadius: 12))
+                nativeCard(result.nativeVersion)
             }
         }
+    }
+
+    // Same rule as the iPhone: long native sentence gets the full width,
+    // with the buttons underneath instead of squeezing it into a column.
+    @ViewBuilder
+    private func nativeCard(_ native: String) -> some View {
+        let isLong = native.count > 15
+        let text = VStack(alignment: .leading, spacing: 2) {
+            Label("Native speaker", systemImage: "person.wave.2")
+                .font(.caption).foregroundStyle(.secondary)
+            Text(native)
+                .textSelection(.enabled)
+                .fixedSize(horizontal: false, vertical: true)
+            Text(pinyin(native))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+
+        let buttons = HStack(spacing: 10) {
+            speakButton(native)
+            Button("Use this") { onCopy(native) }
+                .buttonStyle(.bordered)
+                .tint(.green)
+        }
+
+        Group {
+            if isLong {
+                VStack(alignment: .leading, spacing: 8) { text; buttons }
+            } else {
+                HStack(spacing: 10) { text; buttons }
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(cardColor, in: RoundedRectangle(cornerRadius: 12))
     }
 
     // MARK: - Buttons
@@ -179,13 +179,66 @@ struct ResultView: View {
         .help("Play pronunciation")
     }
 
-    private func charsWithPinyin(_ text: String, color: Color) -> some View {
-        VStack(spacing: 1) {
+    // Same rules as the iPhone (CheckView.swift): smaller sentence when long,
+    // and change cards laid out by size (Change.size in CheckResult.swift).
+    private func sentenceFont(for result: CheckResult) -> Font {
+        let length = max(model.original.count, result.corrected.count)
+        if length <= 20 { return .title2 }
+        if length <= 45 { return .title3 }
+        return .body
+    }
+
+    @ViewBuilder
+    private func changeRow(_ change: CheckResult.Change) -> some View {
+        let reason = Text(change.reason)
+            .font(.callout)
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .fixedSize(horizontal: false, vertical: true)
+
+        Group {
+            switch change.size {
+            case .tiny:
+                HStack(spacing: 10) { sideBySide(change); reason }
+            case .medium:
+                VStack(alignment: .leading, spacing: 6) { sideBySide(change); reason }
+            case .long:
+                VStack(alignment: .leading, spacing: 4) {
+                    charsWithPinyin(change.from, color: .red, size: .long)
+                    Image(systemName: "arrow.down").font(.caption).foregroundStyle(.tertiary)
+                    charsWithPinyin(change.to, color: .green, size: .long)
+                    reason.padding(.top, 2)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(cardColor, in: RoundedRectangle(cornerRadius: 12))
+    }
+
+    private func sideBySide(_ change: CheckResult.Change) -> some View {
+        HStack(spacing: 6) {
+            charsWithPinyin(change.from, color: .red)
+            Image(systemName: "arrow.right").font(.caption).foregroundStyle(.tertiary)
+            charsWithPinyin(change.to, color: .green)
+        }
+        .fixedSize()
+    }
+
+    private func charsWithPinyin(_ text: String, color: Color,
+                                 size: CheckResult.Change.Size = .tiny) -> some View {
+        let isLong = size == .long
+        return VStack(alignment: isLong ? .leading : .center, spacing: 1) {
             Text(text.isEmpty ? "—" : text)
-                .font(.title3.weight(.medium))
+                .font(isLong ? .body.weight(.medium) : .title3.weight(.medium))
                 .foregroundStyle(color)
+                .fixedSize(horizontal: false, vertical: true)
             if containsChinese(text) {   // no pinyin under English like "sign up"
-                Text(pinyin(text)).font(.caption2).foregroundStyle(.secondary)
+                Text(pinyin(text))
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
     }
