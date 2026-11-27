@@ -33,3 +33,10 @@
 # English Chinese speakers commonly mix in: keep
 OK 我马上到 | natural
 你用 WeChat 还是 WhatsApp | natural
+
+# English gaps where the right word depends on context
+我好 miss 你啊 | fix
+我 miss 了公交车，所以迟到了 | fix
+医生说我每天要 take 两次药 | fix
+这个 app 太 slow 了，还一直 crash | fix
+我昨天 hang out 了一整天，今天得 catch up 作业 | fix
